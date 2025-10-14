@@ -266,7 +266,6 @@ SELECT DISTINCT event_type FROM ORDER_EVENTS;
 
 **Sameer Ramteke**  
 Hevo Data Assignment – 2025  
-Guided by **Rupam Jengthe**
 
 ---
 
