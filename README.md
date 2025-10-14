@@ -246,8 +246,8 @@ SELECT DISTINCT event_type FROM ORDER_EVENTS;
 | Deliverable | Description |
 |--------------|-------------|
 | GitHub Repo | [https://github.com/<username>/hevo-assignment](https://github.com/<username>/hevo-assignment) |
-| Hevo Team Name | `<Team Name>` |
-| Pipeline ID | `<Pipeline ID>` |
+| Hevo Team Name | `Sameer` |
+| Pipeline ID | `1` |
 | SQL DDLs | Inside `transformations/sql/` |
 | Validation | Inside `validation/` |
 | Loom Video | Link above |
