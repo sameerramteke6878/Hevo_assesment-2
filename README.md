@@ -1,16 +1,18 @@
-# 🚀 HEVO Data Assignment – PostgreSQL → Hevo → Snowflake Pipeline
+# 🚀 HEVO Data Assignment 2 – PostgreSQL → Hevo → Snowflake Pipeline
 
 ---
 
-## 🧭 Project Overview
+# 🧾 Hevo CXE Assignment — Data Pipeline & Transformations
 
-This project demonstrates a complete **data engineering pipeline** built using:
+## 📌 Project Overview
 
-- 🐳 **PostgreSQL (Docker)** → as the data source  
-- 🔄 **Hevo Data** → for data replication and transformations  
-- ❄️ **Snowflake** → as the cloud data warehouse destination  
-
-It includes Docker setup, data ingestion from CSVs, transformation logic (SQL + Python), and validation queries.
+This project demonstrates the end-to-end setup of a **data pipeline from PostgreSQL to Snowflake** using **Hevo Data**.  
+The objective is to:
+- Connect a source database to Snowflake
+- Build a series of transformations to clean and standardize data
+- Handle duplicates, nulls, and inconsistent values
+- Convert currencies to a standard format (USD)
+- Prepare a clean, analytics-ready final model
 
 ---
 
@@ -22,16 +24,16 @@ hevo-assignment/
 ├── docker-compose.yml
 ├── init.sql
 ├── data/
-│   ├── customers.csv
-│   ├── orders.csv
-│   ├── feedback.csv
+│   ├── customers_raw.sql       # Original customer data (source)
+│   ├── orders_raw.sql          # Original orders data (source)
+│   ├── products_raw.sql        # Original product catalog (source)
+│   └── country_dim.sql
 ├── transformations/
-│   ├── hevo_python_transform.py
 │   ├── sql/
-│       ├── order_events.sql
-│       ├── customers_username.sql
-├── validation/
-│   ├── snowflake_validation.sql
+│       ├── 01_customer_cleanup.sql   # Deduplication, standardization, and null handling for customer data
+│   │   ├── 02_product_standardization.sql  # Standardizes product names and categories
+│   │   ├── 03_orders_cleanup.sql     # Cleans orders data, handles duplicates, invalid amounts, and currency conversion
+│   │   └── 04_final_unified_dataset.sql
 └── README.md
 ```
 
@@ -39,22 +41,14 @@ hevo-assignment/
 
 ## ⚙️ 1. Setup Instructions
 
-### 🧩 1.1 Clone Repository
-```bash
-git clone https://github.com/<username>/hevo-assignment.git
-cd hevo-assignment
-```
-
----
-
-### 🐳 1.2 Start PostgreSQL using Docker
+### 🐳 1.1 Start PostgreSQL using Docker
 ```bash
 docker-compose up --build
 ```
 This creates:
-- Database → `hevo_db`
-- Tables → `customers`, `orders`, `feedback`
-- Loads sample data from `data/` CSV files
+- Database → `postgres`
+- Tables → `customers_raw`, `orders_raw`, `products_raw`,`country_dim`
+- Loads sample data from the given pdf
 
 ---
 
@@ -91,20 +85,13 @@ ngrok config add-authtoken <your_token>
 ngrok tcp 5432
 ```
 
-Copy the forwarding address (e.g. `tcp://0.tcp.in.ngrok.io:18600`) → paste into Hevo **PostgreSQL source** config.
+Copy the forwarding address (e.g. `tcp://0.tcp.in.ngrok.io:16916`) → paste into Hevo **PostgreSQL source** config.
 
 ---
 
 ### ❄️ 1.5 Connect Snowflake in Hevo
-- Database: `PC_HEVODATA_DB`
-- Schema: `PUBLIC`
-- Validate connection:
-```sql
-USE SCHEMA PC_HEVODATA_DB.PUBLIC;
-SHOW TABLES;
-SELECT * FROM SNOWFLAKE_ORDERS LIMIT 5;
-```
-
+-
+configured Hevo to connect to the local postgre using grok
 ---
 
 ## 🧩 2. Transformations
@@ -136,59 +123,6 @@ SELECT
     SPLIT_PART(email, '@', 1) AS username
 FROM SNOWFLAKE_CUSTOMERS;
 ```
-
----
-
-### 2.2 Python Transformation (Hevo Custom Script)
-`transformations/hevo_python_transform.py`
-```python
-from io.hevo.api import Event
-
-def transform(event):
-    props = event.getProperties()
-    name  = event.getEventName()
-
-    # Derive username from email
-    if name == 'customers':
-        email = props.get('email') or ''
-        at = email.find('@')
-        if at > 0:
-            props['username'] = email[:at]
-
-    # Generate order event rows
-    if name == 'orders':
-        status = (props.get('status') or '').strip().lower()
-        mapping = {
-            'placed': 'order_placed',
-            'shipped': 'order_shipped',
-            'delivered': 'order_delivered',
-            'cancelled': 'order_cancelled'
-        }
-        event_type = mapping.get(status, 'unknown_status')
-
-        new_props = {
-            "order_id": props.get("id"),
-            "customer_id": props.get("customer_id"),
-            "event_type": event_type,
-            "event_time": props.get("updated_at") or props.get("created_at")
-        }
-
-        new_event = Event("order_events", new_props)
-        return [event, new_event]
-
-    return event
-```
-
----
-
-## 📄 3. Assumptions Made
-
-- `status` column stored as `VARCHAR` (not ENUM) for flexibility  
-- `address` stored as JSON for future expansion  
-- CSVs contain header rows  
-- `updated_at`/`created_at` may be missing (optional)  
-- Using `PUBLIC` schema in Snowflake  
-
 ---
 
 ## 🧰 4. Design & Decisions
@@ -197,9 +131,9 @@ def transform(event):
 |------|---------|--------|
 | PostgreSQL via Docker | Easy setup & consistent dev env | Portable |
 | Logical Replication | Real-time WAL-based CDC | Reliable |
-| Transformations | SQL + Python mix | Show ELT + ETL |
+| Transformations | SQL | Show ELT + ETL |
 | Hevo Destination Schema | `PUBLIC` | Default PC schema |
-| CSV Load | `\copy` command | Fast & simple |
+
 
 ---
 
@@ -210,8 +144,6 @@ def transform(event):
 | Docker permission denied | Daemon not running | Restart Docker Desktop |
 | WAL level error | Default = replica | Set `wal_level=logical` |
 | Ngrok TCP blocked | Free plan limit | Added card for auth |
-| Schema not found | Wrong schema | Used `PC_HEVODATA_DB.PUBLIC` |
-| f-string syntax error | Hevo runtime Python 3.6 | Used string concatenation |
 | “CREATE TABLE not allowed” | Hevo Models allow only SELECT | Used SELECT queries only |
 
 ---
@@ -219,20 +151,8 @@ def transform(event):
 ## 🧪 6. Validation (Snowflake)
 `validation/snowflake_validation.sql`
 
-```sql
--- Row Counts
-SELECT COUNT(*) FROM SNOWFLAKE_CUSTOMERS;
-SELECT COUNT(*) FROM SNOWFLAKE_ORDERS;
-SELECT COUNT(*) FROM SNOWFLAKE_FEEDBACK;
-
--- Username Verification
-SELECT email, username FROM SNOWFLAKE_CUSTOMERS LIMIT 5;
-
--- Event Validation
-SELECT * FROM ORDER_EVENTS LIMIT 10;
-SELECT DISTINCT event_type FROM ORDER_EVENTS;
-```
-
+- select * from finaloutput;
+It shows the desired final output.
 ---
 
 ## 🎥 7. Loom Video (Pipeline Demo)
@@ -245,9 +165,9 @@ SELECT DISTINCT event_type FROM ORDER_EVENTS;
 
 | Deliverable | Description |
 |--------------|-------------|
-| GitHub Repo | [https://github.com/<username>/hevo-assignment](https://github.com/<username>/hevo-assignment) |
+| GitHub Repo | [https://github.com/sameerramteke6878/hevo_assesment-2](https://github.com/sameerramteke6878/hevo_assesment-2) |
 | Hevo Team Name | `Sameer` |
-| Pipeline ID | `1` |
+| Pipeline ID | `8` |
 | SQL DDLs | Inside `transformations/sql/` |
 | Validation | Inside `validation/` |
 | Loom Video | Link above |
@@ -269,9 +189,3 @@ Hevo Data Assignment – 2025
 
 ---
 
-## ✅ Next Steps
-
-1. Add Loom video link 🎥  
-2. Commit all final files  
-3. Push to GitHub  
-4. Submit repo + Hevo details in Google Form  
