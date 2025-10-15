@@ -1,0 +1,8 @@
+"ORDER_ID","ORDER_DATE","AMOUNT","CURRENCY","AMOUNT_USD","CUSTOMER_ID","CUSTOMER_EMAIL","PRODUCT_ID","PRODUCT_NAME","PRODUCT_CATEGORY"
+5001,1752138000000,120,"USD",120,101,"Orphan Customer","P01","Keyboard","Hardware"
+5002,1752138300000,80.5,"USD",80.5,102,"Orphan Customer","P02","Mouse","Hardware"
+5003,1752138900000,200,"INR",2.4096,103,"Orphan Customer","Unknown","Unknown Product",
+5004,1752139200000,0,,0,105,"Orphan Customer","P99","Unknown Product",
+5005,1752139500000,0,"SGD",0,106,"Orphan Customer","P03","Discontinued Product","Hardware"
+5006,1752228000000,300,"USD",300,107,"Orphan Customer","Unknown","Unknown Product",
+5007,1752228900000,500,"EUR",543.4785,108,"Orphan Customer","P04","Premium Cable","Accessory"

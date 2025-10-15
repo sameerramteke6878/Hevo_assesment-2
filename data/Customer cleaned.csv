@@ -1,0 +1,7 @@
+"CUSTOMER_ID","EMAIL","PHONE","COUNTRY_CODE","CREATED_AT","UPDATED_AT","CUSTOMER_STATUS"
+102,"alice@example.com","Unknown","US",-2208988800000,1751361000000,"Valid"
+104,"bob@xyz.com","Unknown","IN",1741599000000,1751824800000,"Valid"
+106,"duplicate@email.com","1234567890","SG",1743507900000,1752148800000,"Valid"
+101,"john.d@example.com","1112223333","Unknown",1735718400000,1751552700000,"Valid"
+103,"michael@abc.com","9998887777","Unknown",1740823200000,1751460300000,"Valid"
+108,,"Unknown","Unknown",-2208988800000,,"Invalid Customer"
