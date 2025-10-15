@@ -168,9 +168,8 @@ It shows the desired final output.
 | GitHub Repo | [https://github.com/sameerramteke6878/hevo_assesment-2](https://github.com/sameerramteke6878/hevo_assesment-2) |
 | Hevo Team Name | `Sameer` |
 | Pipeline ID | `8` |
-| SQL DDLs | Inside `transformations/sql/` |
 | Validation | Inside `validation/` |
-| Loom Video | Link above |
+| Loom Video | [Link above](https://www.loom.com/share/f0f79988f40b425ea7883f070c39fcac?sid=31213196-f890-4656-b202-5f0f491f7bc5) |
 
 ---
 
